@@ -1,0 +1,109 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+
+import 'AccountCard.dart';
+import 'package:http/http.dart' as http;
+
+class Account {
+  final String name;
+
+  Account({
+    required this.name,
+  });
+
+  factory Account.fromJson(Map<String, dynamic> json) {
+    return Account(
+      name: json['name'],
+    );
+  }
+}
+
+Future<Account> fetchAlbum() async {
+  final response = await http
+      .get(Uri.parse('http://jsonplaceholder.typicode.com/albums/1'));
+
+  if (response.statusCode == 200) {
+    return Account.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load account');
+  }
+}
+
+class Dashboard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        searchBar(),
+        gridView(),
+      ],
+    );
+  }
+
+  Expanded gridView() {
+    return Expanded(
+      child: GridView.extent(
+        primary: false,
+        padding: const EdgeInsets.all(20),
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
+        maxCrossAxisExtent: 200,
+        semanticChildCount: 53,
+        children: List.generate(53, (index) {
+          return GestureDetector(
+            onTap: () {
+              print("onTap called.");
+            },
+            child: AccountCard(
+              name: 'Seg 1 Acccount',
+              icon: Icons.cloud,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  ConstrainedBox searchBar() {
+    var searchField = Container(
+      padding: const EdgeInsets.all(20),
+      child: TextField(
+        decoration: InputDecoration(
+          icon: Icon(
+            Icons.search,
+            size: 30.0,
+          ),
+        ),
+      ),
+    );
+
+    var filters = ButtonBar(
+      alignment: MainAxisAlignment.center,
+      children: [
+        OutlinedButton(
+          onPressed: () => null,
+          child: Text("Accounts"),
+        ),
+        OutlinedButton(
+          onPressed: () => null,
+          child: Text("Talent"),
+        ),
+        OutlinedButton(
+          onPressed: () => null,
+          child: Text("Engagement"),
+        ),
+      ],
+    );
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: 300, maxWidth: 800),
+      child: Column(
+        children: [
+          searchField,
+          filters,
+        ],
+      ),
+    );
+  }
+}
