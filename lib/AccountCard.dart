@@ -21,76 +21,78 @@ class AccountCard extends StatelessWidget {
     const TextStyle nameStyle = TextStyle(fontWeight: FontWeight.bold);
 
     return Card(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            leading: Icon(Icons.apartment),
-            title: Text(
-              name,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 3,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              leading: Icon(Icons.apartment),
+              title: Text(
+                name,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 3,
+              ),
+              horizontalTitleGap: 0,
             ),
-            horizontalTitleGap: 0,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 20, top: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Squad Manager',
-                  textAlign: TextAlign.left,
-                ),
-                Padding(
-                  padding: insets,
-                  child: Text(
-                    this.squadManager,
-                    style: nameStyle,
+            Padding(
+              padding: const EdgeInsets.only(left: 20, top: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Squad Manager',
                     textAlign: TextAlign.left,
                   ),
-                ),
-                Text(
-                  'Design Manager',
-                  textAlign: TextAlign.left,
-                ),
-                Padding(
-                  padding: insets,
-                  child: Text(
-                    this.designManager,
-                    style: nameStyle,
+                  Padding(
+                    padding: insets,
+                    child: Text(
+                      this.squadManager,
+                      style: nameStyle,
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  Text(
+                    'Design Manager',
                     textAlign: TextAlign.left,
                   ),
-                ),
-                Text(
-                  'BTC Manager',
-                  textAlign: TextAlign.left,
-                ),
-                Padding(
-                  padding: insets,
-                  child: Text(
-                    this.btcManager,
-                    style: nameStyle,
+                  Padding(
+                    padding: insets,
+                    child: Text(
+                      this.designManager,
+                      style: nameStyle,
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  Text(
+                    'BTC Manager',
                     textAlign: TextAlign.left,
                   ),
-                ),
-                Text(
-                  'CTL',
-                  textAlign: TextAlign.left,
-                ),
-                Padding(
-                  padding: insets,
-                  child: Text(
-                    this.ctl,
-                    style: nameStyle,
+                  Padding(
+                    padding: insets,
+                    child: Text(
+                      this.btcManager,
+                      style: nameStyle,
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  Text(
+                    'CTL',
                     textAlign: TextAlign.left,
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: insets,
+                    child: Text(
+                      this.ctl,
+                      style: nameStyle,
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
