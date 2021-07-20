@@ -7,6 +7,8 @@ import 'AccountCard.dart';
 import 'Talent.dart';
 import 'TalentCard.dart';
 
+typedef SelectionChangedCallback = void Function(List<bool> b);
+
 class Dashboard extends StatefulWidget {
   Dashboard({Key? key}) : super(key: key);
 
@@ -15,24 +17,56 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  late Future<List<List<dynamic>>> futureAccounts;
+  late Future<List<List<dynamic>>> futureLists;
+  List<bool> filters = [true, true, true];
 
   @override
   void initState() {
     super.initState();
 
+    // getDataFutures();
+  }
+
+  getDataFutures() {
     FutureGroup<List<dynamic>> futureGroup = FutureGroup();
-    futureGroup.add(Account.fetchAccounts());
-    futureGroup.add(Talent.fetchTalent());
+
+    if (filters[0]) {
+      futureGroup.add(Account.fetchAccounts());
+    } else {
+      futureGroup.add(Future.value(List.empty()));
+    }
+
+    if (filters[1]) {
+      futureGroup.add(Talent.fetchTalent());
+    } else {
+      futureGroup.add(Future.value(List.empty()));
+    }
+
     futureGroup.close();
-    futureAccounts = futureGroup.future;
+    futureLists = futureGroup.future;
+  }
+
+  setFilters(List<bool> f) {
+    setState(() {
+      filters = f;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    getDataFutures();
+
     return Column(
       children: [
-        searchBar(),
+        ConstrainedBox(
+          constraints: BoxConstraints(minWidth: 300, maxWidth: 800),
+          child: Column(
+            children: [
+              searchBar(),
+              FilterBar(onChange: (boolList) => setFilters(boolList)),
+            ],
+          ),
+        ),
         gridView(),
       ],
     );
@@ -41,22 +75,19 @@ class _DashboardState extends State<Dashboard> {
   Expanded gridView() {
     return Expanded(
       child: FutureBuilder<List<List<dynamic>>>(
-          future: futureAccounts,
+          future: futureLists,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              var accountCards = getAccountCards(snapshot.data![0].cast());
-              var talentCards = getTalentCards(snapshot.data![1].cast());
+              List<Widget> cards = List.empty(growable: true);
 
-              List<Widget> cards = List.of(accountCards);
-              cards.addAll(talentCards);
+              cards.addAll(getAccountCards(snapshot.data![0].cast()));
+              cards.addAll(getTalentCards(snapshot.data![1].cast()));
 
               return GridView.extent(
-                // primary: false,
                 padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
                 maxCrossAxisExtent: 300,
-                // semanticChildCount: snapshot.data!.length,
                 children: cards,
               );
             } else {
@@ -97,8 +128,8 @@ class _DashboardState extends State<Dashboard> {
         .toList();
   }
 
-  ConstrainedBox searchBar() {
-    var searchField = Container(
+  Widget searchBar() {
+    return Container(
       padding: const EdgeInsets.all(20),
       child: TextField(
         decoration: InputDecoration(
@@ -109,25 +140,15 @@ class _DashboardState extends State<Dashboard> {
         ),
       ),
     );
-
-    var filters = FilterBar();
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(minWidth: 300, maxWidth: 800),
-      child: Column(
-        children: [
-          searchField,
-          filters,
-        ],
-      ),
-    );
   }
 }
 
 class FilterBar extends StatefulWidget {
+  final SelectionChangedCallback onChange;
+
   FilterBar({
-    Key? key,
-  }) : super(key: key);
+    required this.onChange,
+  });
 
   @override
   State<FilterBar> createState() => _FilterBarState();
@@ -136,22 +157,11 @@ class FilterBar extends StatefulWidget {
 class _FilterBarState extends State<FilterBar> {
   final isSelected = [true, true, true];
 
-  select(int i) {
-    setState(() {
-      isSelected[i] = true;
-    });
-  }
-
-  deselect(int i) {
-    setState(() {
-      isSelected[i] = false;
-    });
-  }
-
   toggle(int i) {
     setState(() {
       isSelected[i] = !isSelected[i];
     });
+    widget.onChange(isSelected);
   }
 
   @override
