@@ -1,7 +1,11 @@
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 
 import 'Account.dart';
 import 'AccountCard.dart';
+
+import 'Talent.dart';
+import 'TalentCard.dart';
 
 class Dashboard extends StatefulWidget {
   Dashboard({Key? key}) : super(key: key);
@@ -11,12 +15,17 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  late Future<List<Account>> futureAccounts;
+  late Future<List<List<dynamic>>> futureAccounts;
 
   @override
   void initState() {
     super.initState();
-    futureAccounts = Account.fetchAccounts();
+
+    FutureGroup<List<dynamic>> futureGroup = FutureGroup();
+    futureGroup.add(Account.fetchAccounts());
+    futureGroup.add(Talent.fetchTalent());
+    futureGroup.close();
+    futureAccounts = futureGroup.future;
   }
 
   @override
@@ -24,31 +33,22 @@ class _DashboardState extends State<Dashboard> {
     return Column(
       children: [
         searchBar(),
-        gridView(futureAccounts),
+        gridView(),
       ],
     );
   }
 
-  Expanded gridView(Future<List<Account>> accounts) {
+  Expanded gridView() {
     return Expanded(
-      child: FutureBuilder<List<Account>>(
+      child: FutureBuilder<List<List<dynamic>>>(
           future: futureAccounts,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              var accountCards = snapshot.data!
-                  .map((a) => GestureDetector(
-                        onTap: () {
-                          print("onTap called.");
-                        },
-                        child: AccountCard(
-                          name: a.name,
-                          squadManager: a.squadManager,
-                          designManager: a.designManager,
-                          btcManager: a.btcManager,
-                          ctl: a.ctl,
-                        ),
-                      ))
-                  .toList();
+              var accountCards = getAccountCards(snapshot.data![0].cast());
+              var talentCards = getTalentCards(snapshot.data![1].cast());
+
+              List<Widget> cards = List.of(accountCards);
+              cards.addAll(talentCards);
 
               return GridView.extent(
                 // primary: false,
@@ -57,13 +57,44 @@ class _DashboardState extends State<Dashboard> {
                 mainAxisSpacing: 10,
                 maxCrossAxisExtent: 300,
                 // semanticChildCount: snapshot.data!.length,
-                children: accountCards,
+                children: cards,
               );
             } else {
               return CircularProgressIndicator();
             }
           }),
     );
+  }
+
+  List<Widget> getAccountCards(List<Account> accounts) {
+    return accounts
+        .map((a) => GestureDetector(
+              onTap: () {
+                print("onTap called.");
+              },
+              child: AccountCard(
+                name: a.name,
+                squadManager: a.squadManager,
+                designManager: a.designManager,
+                btcManager: a.btcManager,
+                ctl: a.ctl,
+              ),
+            ))
+        .toList();
+  }
+
+  List<Widget> getTalentCards(List<Talent> talent) {
+    return talent
+        .map((a) => GestureDetector(
+              onTap: () {
+                print("onTap called.");
+              },
+              child: TalentCard(
+                firstName: a.firstName,
+                lastName: a.lastName,
+              ),
+            ))
+        .toList();
   }
 
   ConstrainedBox searchBar() {
@@ -79,23 +110,7 @@ class _DashboardState extends State<Dashboard> {
       ),
     );
 
-    var filters = ButtonBar(
-      alignment: MainAxisAlignment.center,
-      children: [
-        OutlinedButton(
-          onPressed: () => null,
-          child: Text("Accounts"),
-        ),
-        OutlinedButton(
-          onPressed: () => null,
-          child: Text("Talent"),
-        ),
-        OutlinedButton(
-          onPressed: () => null,
-          child: Text("Engagement"),
-        ),
-      ],
-    );
+    var filters = FilterBar();
 
     return ConstrainedBox(
       constraints: BoxConstraints(minWidth: 300, maxWidth: 800),
@@ -105,6 +120,54 @@ class _DashboardState extends State<Dashboard> {
           filters,
         ],
       ),
+    );
+  }
+}
+
+class FilterBar extends StatefulWidget {
+  FilterBar({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<FilterBar> createState() => _FilterBarState();
+}
+
+class _FilterBarState extends State<FilterBar> {
+  final isSelected = [true, true, true];
+
+  select(int i) {
+    setState(() {
+      isSelected[i] = true;
+    });
+  }
+
+  deselect(int i) {
+    setState(() {
+      isSelected[i] = false;
+    });
+  }
+
+  toggle(int i) {
+    setState(() {
+      isSelected[i] = !isSelected[i];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ToggleButtons(
+      onPressed: toggle,
+      isSelected: isSelected,
+      selectedBorderColor: Colors.blue,
+      selectedColor: Colors.blue,
+      borderWidth: 4,
+      constraints: BoxConstraints.expand(width: 200, height: 50),
+      children: [
+        Text('Accounts'),
+        Text('Talent'),
+        Text('Engagements'),
+      ],
     );
   }
 }
