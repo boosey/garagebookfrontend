@@ -19,29 +19,20 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   late Future<List<List<dynamic>>> futureLists;
   List<bool> filters = [true, true, true];
+  List<Widget> accountCards = List.empty();
+  List<Widget> talentCards = List.empty();
 
   @override
   void initState() {
     super.initState();
 
-    // getDataFutures();
+    getDataFutures();
   }
 
   getDataFutures() {
     FutureGroup<List<dynamic>> futureGroup = FutureGroup();
-
-    if (filters[0]) {
-      futureGroup.add(Account.fetchAccounts());
-    } else {
-      futureGroup.add(Future.value(List.empty()));
-    }
-
-    if (filters[1]) {
-      futureGroup.add(Talent.fetchTalent());
-    } else {
-      futureGroup.add(Future.value(List.empty()));
-    }
-
+    futureGroup.add(Account.fetchAccounts());
+    futureGroup.add(Talent.fetchTalent());
     futureGroup.close();
     futureLists = futureGroup.future;
   }
@@ -54,8 +45,6 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    getDataFutures();
-
     return Column(
       children: [
         ConstrainedBox(
@@ -80,8 +69,13 @@ class _DashboardState extends State<Dashboard> {
             if (snapshot.hasData) {
               List<Widget> cards = List.empty(growable: true);
 
-              cards.addAll(getAccountCards(snapshot.data![0].cast()));
-              cards.addAll(getTalentCards(snapshot.data![1].cast()));
+              if (filters[0]) {
+                cards.addAll(getAccountCards(snapshot.data![0].cast()));
+              }
+
+              if (filters[1]) {
+                cards.addAll(getTalentCards(snapshot.data![1].cast()));
+              }
 
               return GridView.extent(
                 padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
@@ -91,41 +85,52 @@ class _DashboardState extends State<Dashboard> {
                 children: cards,
               );
             } else {
-              return CircularProgressIndicator();
+              return Center(
+                child: CircularProgressIndicator(),
+                widthFactor: 1,
+                heightFactor: 1,
+              );
             }
           }),
     );
   }
 
   List<Widget> getAccountCards(List<Account> accounts) {
-    return accounts
-        .map((a) => GestureDetector(
-              onTap: () {
-                print("onTap called.");
-              },
-              child: AccountCard(
-                name: a.name,
-                squadManager: a.squadManager,
-                designManager: a.designManager,
-                btcManager: a.btcManager,
-                ctl: a.ctl,
-              ),
-            ))
-        .toList();
+    if (accounts.length != accountCards.length) {
+      accountCards = accounts
+          .map((a) => GestureDetector(
+                onTap: () {
+                  print("onTap called.");
+                },
+                child: AccountCard(
+                  name: a.name,
+                  squadManager: a.squadManager,
+                  designManager: a.designManager,
+                  btcManager: a.btcManager,
+                  ctl: a.ctl,
+                ),
+              ))
+          .toList();
+    }
+
+    return accountCards;
   }
 
   List<Widget> getTalentCards(List<Talent> talent) {
-    return talent
-        .map((a) => GestureDetector(
-              onTap: () {
-                print("onTap called.");
-              },
-              child: TalentCard(
-                firstName: a.firstName,
-                lastName: a.lastName,
-              ),
-            ))
-        .toList();
+    if (talent.length != talentCards.length) {
+      talentCards = talent
+          .map((a) => GestureDetector(
+                onTap: () {
+                  print("onTap called.");
+                },
+                child: TalentCard(
+                  firstName: a.firstName,
+                  lastName: a.lastName,
+                ),
+              ))
+          .toList();
+    }
+    return talentCards;
   }
 
   Widget searchBar() {
