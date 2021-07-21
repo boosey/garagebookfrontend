@@ -6,6 +6,7 @@ import 'AccountCard.dart';
 
 import 'Talent.dart';
 import 'TalentCard.dart';
+import 'package:split_view/split_view.dart';
 
 typedef SelectionChangedCallback = void Function(List<bool> b);
 
@@ -56,43 +57,66 @@ class _DashboardState extends State<Dashboard> {
             ],
           ),
         ),
-        gridView(),
+        Expanded(
+          child: SplitView(
+            viewMode: SplitViewMode.Horizontal,
+            indicator: SplitIndicator(viewMode: SplitViewMode.Horizontal),
+            activeIndicator: SplitIndicator(
+              viewMode: SplitViewMode.Horizontal,
+              isActive: true,
+            ),
+            controller:
+                SplitViewController(limits: [null, WeightLimit(max: 0.5)]),
+            onWeightChanged: (w) => print("Vertical $w"),
+            children: [
+              gridView(),
+              detailsView(),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Expanded gridView() {
-    return Expanded(
-      child: FutureBuilder<List<List<dynamic>>>(
-          future: futureLists,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              List<Widget> cards = List.empty(growable: true);
-
-              if (filters[0]) {
-                cards.addAll(getAccountCards(snapshot.data![0].cast()));
-              }
-
-              if (filters[1]) {
-                cards.addAll(getTalentCards(snapshot.data![1].cast()));
-              }
-
-              return GridView.extent(
-                padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                maxCrossAxisExtent: 300,
-                children: cards,
-              );
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-                widthFactor: 1,
-                heightFactor: 1,
-              );
-            }
-          }),
+  Column detailsView() {
+    return Column(
+      children: [
+        Text("First Line"),
+        Text("Second Line"),
+      ],
     );
+  }
+
+  Widget gridView() {
+    return FutureBuilder<List<List<dynamic>>>(
+        future: futureLists,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            List<Widget> cards = List.empty(growable: true);
+
+            if (filters[0]) {
+              cards.addAll(getAccountCards(snapshot.data![0].cast()));
+            }
+
+            if (filters[1]) {
+              cards.addAll(getTalentCards(snapshot.data![1].cast()));
+            }
+
+            return GridView.extent(
+              padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              maxCrossAxisExtent: 300,
+              children: cards,
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+              widthFactor: 1,
+              heightFactor: 1,
+            );
+          }
+        });
   }
 
   List<Widget> getAccountCards(List<Account> accounts) {
